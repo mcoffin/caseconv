@@ -7,3 +7,7 @@
 ```
 cargo build --release
 ```
+
+# License
+
+`caseconv` is licenced under the `MIT License`.
