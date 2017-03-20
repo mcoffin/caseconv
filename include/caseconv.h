@@ -8,5 +8,6 @@ typedef enum {
 } caseconv_case_type_t;
 
 char *caseconv_convert_case(const char *src, caseconv_case_type_t src_type, caseconv_case_type_t dst_type);
+caseconv_case_type_t caseconv_guess_case(const char *src);
 
 #endif
