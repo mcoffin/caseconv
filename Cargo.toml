@@ -3,5 +3,8 @@ name = "caseconv"
 version = "0.1.0"
 authors = ["Matt Coffin <matt.coffin@charter.com>"]
 
+[lib]
+crate-type = ["dylib"]
+
 [dependencies]
 libc = "0.2"
