@@ -1,14 +1,16 @@
 pub trait DefiningCase<'a, T: Iterator<Item=&'a str>> {
-    fn components_iter(&'a str) -> T;
+    fn components_iter(self, &'a str) -> T;
 }
 
 pub trait Case {
-    fn build_identifier<'a, It: Iterator<Item=&'a str>>(components: It) -> String;
+    fn build_identifier<'a, It: Iterator<Item=&'a str>>(self, components: It) -> String;
 }
 
-pub fn convert<'a, It: Iterator<Item=&'a str>, A: DefiningCase<'a, It>, B: Case>(src: &'a str) -> String {
-    B::build_identifier(A::components_iter(src))
+pub fn convert<'a, It: Iterator<Item=&'a str>, A: DefiningCase<'a, It>, B: Case>(src: &'a str, src_case: A, dst_case: B) -> String {
+    dst_case.build_identifier(src_case.components_iter(src))
 }
+
+pub mod dynamic;
 
 pub mod case {
     use super::{ Case, DefiningCase };
@@ -17,7 +19,9 @@ pub mod case {
         fn delimeter() -> char;
     }
 
-    pub enum Camel {}
+    pub struct Camel {}
+
+    pub const CAMEL: Camel = Camel {};
 
     pub struct CamelIterator<'a> {
         src: &'a str
@@ -53,13 +57,13 @@ pub mod case {
     }
 
     impl<'a> DefiningCase<'a, CamelIterator<'a>> for Camel {
-        fn components_iter(src: &'a str) -> CamelIterator {
+        fn components_iter(self, src: &'a str) -> CamelIterator<'a> {
             CamelIterator::new(src)
         }
     }
 
     impl Case for Camel {
-        fn build_identifier<'a, It: Iterator<Item=&'a str>>(mut components: It) -> String {
+        fn build_identifier<'a, It: Iterator<Item=&'a str>>(self, mut components: It) -> String {
             components.next().map_or(Default::default(), |first_component| {
                 let mut buf = first_component.to_lowercase();
                 for comp in components {
@@ -73,7 +77,9 @@ pub mod case {
         }
     }
 
-    pub enum Snake {}
+    pub struct Snake {}
+
+    pub const SNAKE: Snake = Snake {};
 
     pub struct DelimeterIterator<'a> {
         delimeter: char,
@@ -119,7 +125,9 @@ pub mod case {
         }
     }
 
-    pub enum Kebab {}
+    pub struct Kebab {}
+
+    pub const KEBAB: Kebab = Kebab {};
 
     impl DelimetedCase for Kebab {
         fn delimeter() -> char {
@@ -128,13 +136,13 @@ pub mod case {
     }
 
     impl<'a, T: DelimetedCase> DefiningCase<'a, DelimeterIterator<'a>> for T {
-        fn components_iter(src: &'a str) -> DelimeterIterator {
+        fn components_iter(self, src: &'a str) -> DelimeterIterator<'a> {
             DelimeterIterator::new(src, T::delimeter())
         }
     }
 
     impl<T: DelimetedCase> Case for T {
-        fn build_identifier<'a, It: Iterator<Item=&'a str>>(components: It) -> String {
+        fn build_identifier<'a, It: Iterator<Item=&'a str>>(self, components: It) -> String {
             let components = components.map(|c| c.to_lowercase());
             let mut is_first = false;
             let mut buf = String::from("");
@@ -162,69 +170,69 @@ mod tests {
 
     #[test]
     fn simple_camel_case_counted_correctly() {
-        let it = Camel::components_iter(CAMEL_CASE_TEST_VAL);
+        let it = CAMEL.components_iter(CAMEL_CASE_TEST_VAL);
         assert_eq!(it.count(), 3);
     }
 
     #[test]
     fn simple_camel_case_defined_correctly() {
-        let it = Camel::components_iter(CAMEL_CASE_TEST_VAL);
+        let it = CAMEL.components_iter(CAMEL_CASE_TEST_VAL);
         let components: Vec<&'static str> = it.collect();
         assert_eq!(components, vec!["simple", "Camel", "Case"]);
     }
 
     #[test]
     fn simple_camel_case_converts_self() {
-        let id = Camel::build_identifier(Camel::components_iter(CAMEL_CASE_TEST_VAL));
+        let id = convert(CAMEL_CASE_TEST_VAL, CAMEL, CAMEL);
         assert_eq!(id, "simpleCamelCase");
     }
 
     #[test]
     fn simple_snake_case_converts_camel() {
-        let id = convert::<_, Snake, Camel>(SNAKE_CASE_TEST_VAL);
+        let id = convert(SNAKE_CASE_TEST_VAL, SNAKE, CAMEL);
         assert_eq!(id, "simpleSnakeCase");
     }
 
     #[test]
     fn simple_kebab_case_converts_camel() {
-        let id = Camel::build_identifier(Kebab::components_iter(KEBAB_CASE_TEST_VAL));
+        let id = convert(KEBAB_CASE_TEST_VAL, KEBAB, CAMEL);
         assert_eq!(id, "simpleKebabCase");
     }
 
     #[test]
     fn simple_camel_case_converts_kebab() {
-        let id = Kebab::build_identifier(Camel::components_iter(CAMEL_CASE_TEST_VAL));
+        let id = convert(CAMEL_CASE_TEST_VAL, CAMEL, KEBAB);
         assert_eq!(id, "simple-camel-case");
     }
 
     #[test]
     fn simple_snake_case_converts_kebab() {
-        let id = Kebab::build_identifier(Snake::components_iter(SNAKE_CASE_TEST_VAL));
+        let id = convert(SNAKE_CASE_TEST_VAL, SNAKE, KEBAB);
         assert_eq!(id, "simple-snake-case");
     }
 
     #[test]
     fn simple_kebab_case_converts_snake() {
-        let id = Snake::build_identifier(Kebab::components_iter(KEBAB_CASE_TEST_VAL));
+        let id = convert(KEBAB_CASE_TEST_VAL, KEBAB, SNAKE);
         assert_eq!(id, "simple_kebab_case");
     }
 
     #[test]
     fn simple_camel_case_converts_snake() {
-        let id = Snake::build_identifier(Camel::components_iter(CAMEL_CASE_TEST_VAL));
+        let id = convert(CAMEL_CASE_TEST_VAL, CAMEL, SNAKE);
         assert_eq!(id, "simple_camel_case");
     }
 
     #[test]
     fn simple_snake_case_defined_correctly() {
-        let it = Snake::components_iter(SNAKE_CASE_TEST_VAL);
+        let it = SNAKE.components_iter(SNAKE_CASE_TEST_VAL);
         let components: Vec<&'static str> = it.collect();
         assert_eq!(components, vec!["simple", "snake", "case"]);
     }
 
     #[test]
     fn simple_kebab_case_defined_correctly() {
-        let it = Kebab::components_iter(KEBAB_CASE_TEST_VAL);
+        let it = KEBAB.components_iter(KEBAB_CASE_TEST_VAL);
         let components: Vec<&'static str> = it.collect();
         assert_eq!(components, vec!["simple", "kebab", "case"]);
     }
