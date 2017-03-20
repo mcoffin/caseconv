@@ -1,3 +1,5 @@
+extern crate libc;
+
 pub trait DefiningCase<'a, T: Iterator<Item=&'a str>> {
     fn components_iter(self, &'a str) -> T;
 }
@@ -158,6 +160,8 @@ pub mod case {
         }
     }
 }
+
+pub mod ffi;
 
 #[cfg(test)]
 mod tests {
