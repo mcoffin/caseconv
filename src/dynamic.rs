@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn dynamic_camel_to_kebab() {
-        let id = convert("simpleCamelCase", CaseType::CAMEL, CaseType::KEBAB);
+        let id = convert("simpleCamelCase", &CaseType::CAMEL, &CaseType::KEBAB);
         assert_eq!(id, "simple-camel-case");
     }
 }

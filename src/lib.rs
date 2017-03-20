@@ -12,6 +12,11 @@ pub fn convert<'a, It: Iterator<Item=&'a str>, A: DefiningCase<'a, It>, B: Case>
     dst_case.build_identifier(src_case.components_iter(src))
 }
 
+pub fn guess_and_convert<C: Case>(s: &str, dst_case: C) -> String {
+    let src_case = dynamic::CaseType::guess(s);
+    convert::<_, _, C>(s, &src_case, dst_case)
+}
+
 pub mod dynamic;
 
 pub mod case {
