@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn simple_snake_case_converts_camel() {
-        let id = Camel::build_identifier(Snake::components_iter(SNAKE_CASE_TEST_VAL));
+        let id = convert::<_, Snake, Camel>(SNAKE_CASE_TEST_VAL);
         assert_eq!(id, "simpleSnakeCase");
     }
 
