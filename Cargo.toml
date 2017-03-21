@@ -1,11 +1,12 @@
 [package]
 name = "caseconv"
+description = "Case conversion library"
 version = "0.1.0"
 authors = ["Matt Coffin <matt.coffin@charter.com>"]
 license = "MIT"
-
-[lib]
-crate-type = ["dylib"]
+homepage = "https://github.com/mcoffin/caseconv"
+repository = "https://github.com/mcoffin/caseconv.git"
+documentation = "https://docs.rs/caseconv"
 
 [dependencies]
 libc = "0.2"
