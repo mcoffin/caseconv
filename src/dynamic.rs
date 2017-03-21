@@ -4,6 +4,7 @@ use super::case::*;
 
 #[repr(C)]
 #[derive(Clone)]
+/// Runtime data type representing a case
 pub enum CaseType {
     CAMEL,
     SNAKE,
@@ -23,6 +24,9 @@ const ALL_DEFINING_CASE_TYPES: [CaseType; 3] = [
 ];
 
 impl CaseType {
+    /// Attempts to guess the case of a given string by counting the # of
+    /// components parsed for each case, and returning the one that finds the
+    /// most.
     pub fn guess(s: &str) -> CaseType {
         let maybe_type = ALL_DEFINING_CASE_TYPES.iter()
             .map(|ty| (ty.clone(), ty.components_iter(s).count()))
@@ -34,6 +38,8 @@ impl CaseType {
     }
 }
 
+/// Runtime iterator for components of a string who's case is only known at
+/// runtime.
 pub enum CaseTypeIterator<'a> {
     Camel(CamelIterator<'a>),
     Delimeter(DelimeterIterator<'a>),

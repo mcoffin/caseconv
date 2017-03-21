@@ -1,17 +1,22 @@
 extern crate libc;
 
+/// Represents a case that can be parsed in to components
 pub trait DefiningCase<'a, T: Iterator<Item=&'a str>> {
     fn components_iter(self, &'a str) -> T;
 }
 
+/// Represents a case that can be rendered from components
 pub trait Case {
     fn build_identifier<'a, It: Iterator<Item=&'a str>>(self, components: It) -> String;
 }
 
+/// Converts a string between two different cases (compile-time resolution)
 pub fn convert<'a, It: Iterator<Item=&'a str>, A: DefiningCase<'a, It>, B: Case>(src: &'a str, src_case: A, dst_case: B) -> String {
     dst_case.build_identifier(src_case.components_iter(src))
 }
 
+/// Guess's the source case of a string, then converts it to the destination
+/// case
 pub fn guess_and_convert<C: Case>(s: &str, dst_case: C) -> String {
     let src_case = dynamic::CaseType::guess(s);
     convert::<_, _, C>(s, &src_case, dst_case)
@@ -22,14 +27,18 @@ pub mod dynamic;
 pub mod case {
     use super::{ Case, DefiningCase };
 
+    /// Represents a case that is defined by a singular delimeter character
     pub trait DelimetedCase {
         fn delimeter() -> char;
     }
 
+    /// camelCase
     pub struct Camel {}
 
+    /// camelCase phantom value
     pub const CAMEL: Camel = Camel {};
 
+    /// Iterator data for `Camel`
     pub struct CamelIterator<'a> {
         src: &'a str
     }
@@ -84,10 +93,13 @@ pub mod case {
         }
     }
 
+    /// snake_case
     pub struct Snake {}
 
+    /// snake_case phantom value
     pub const SNAKE: Snake = Snake {};
 
+    /// Parsing iterator for `Snake`
     pub struct DelimeterIterator<'a> {
         delimeter: char,
         src: &'a str
@@ -132,8 +144,10 @@ pub mod case {
         }
     }
 
+    /// kebab-case
     pub struct Kebab {}
 
+    /// kebab-case phantom value
     pub const KEBAB: Kebab = Kebab {};
 
     impl DelimetedCase for Kebab {
