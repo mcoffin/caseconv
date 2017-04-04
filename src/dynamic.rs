@@ -23,6 +23,37 @@ const ALL_DEFINING_CASE_TYPES: [CaseType; 3] = [
     CaseType::KEBAB
 ];
 
+pub const JUMBLED: &'static [CaseType] = &ALL_DEFINING_CASE_TYPES;
+
+struct CombinedCaseIterator<'s, C: AsRef<[CaseType]>> {
+    cases: C,
+    buffer: &'s str
+}
+
+impl<'s, C: AsRef<[CaseType]>> Iterator for CombinedCaseIterator<'s, C> {
+    type Item = &'s str;
+
+    fn next(&mut self) -> Option<&'s str> {
+        println!("next()");
+        let maybe_next = {
+            let cases: &[CaseType] = self.cases.as_ref();
+            cases.iter()
+                .filter_map(|case_type| case_type.components_iter(self.buffer).next().map(|s| (case_type.clone(), s)))
+                .filter(|&(_, ref item)| !item.is_empty())
+                .min_by_key(|&(_, ref item)| item.len())
+        };
+        maybe_next.map(|(case_type, item)| unsafe {
+            println!("item: {}", item);
+            println!("buffer: {}", self.buffer);
+            self.buffer = case_type.slice_buffer(self.buffer, item);
+            println!("new buffer: {}", self.buffer);
+            item
+        })
+    }
+}
+
+
+
 impl CaseType {
     /// Attempts to guess the case of a given string by counting the # of
     /// components parsed for each case, and returning the one that finds the
@@ -35,6 +66,14 @@ impl CaseType {
             Some((ref ty, _)) => ty.clone(),
             None => Default::default(),
         }
+    }
+
+    unsafe fn slice_buffer<'a>(&self, buf: &'a str, item: &str) -> &'a str {
+        let buffer_skip_length = item.len() + match *self {
+            CaseType::CAMEL => 0,
+            _ => 1
+        };
+        buf.slice_unchecked(buffer_skip_length, buf.len())
     }
 }
 
@@ -66,6 +105,15 @@ impl<'a, 'b> DefiningCase<'a, CaseTypeIterator<'a>> for &'b CaseType {
     }
 }
 
+impl<'s, C: AsRef<[CaseType]>> DefiningCase<'s, CombinedCaseIterator<'s, C>> for C {
+    fn components_iter(self, src: &'s str) -> CombinedCaseIterator<'s, C> {
+        CombinedCaseIterator {
+            cases: self,
+            buffer: src
+        }
+    }
+}
+
 impl<'b> Case for &'b CaseType {
     fn build_identifier<'a, It: Iterator<Item=&'a str>>(self, components: It) -> String {
         match *self {
@@ -84,5 +132,11 @@ mod tests {
     fn dynamic_camel_to_kebab() {
         let id = convert("simpleCamelCase", &CaseType::CAMEL, &CaseType::KEBAB);
         assert_eq!(id, "simple-camel-case");
+    }
+
+    #[test]
+    fn dynamic_jumbled_to_kebab() {
+        let id = convert("simple_jumbledCase", JUMBLED, &CaseType::KEBAB);
+        assert_eq!(id, "simple-jumbled-case");
     }
 }
