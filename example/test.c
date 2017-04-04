@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
 	for (int i = 1; i < argc; i++) {
-		char *converted = caseconv_guess_and_convert(argv[i], CASECONV_CASE_TYPE_KEBAB);
+		char *converted = caseconv_unjumble(argv[i], CASECONV_CASE_TYPE_KEBAB);
 		printf("%s\n", converted);
 		free(converted);
 	}

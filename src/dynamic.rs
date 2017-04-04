@@ -34,7 +34,6 @@ impl<'s, C: AsRef<[CaseType]>> Iterator for CombinedCaseIterator<'s, C> {
     type Item = &'s str;
 
     fn next(&mut self) -> Option<&'s str> {
-        println!("next()");
         let maybe_next = {
             let cases: &[CaseType] = self.cases.as_ref();
             cases.iter()
@@ -43,10 +42,7 @@ impl<'s, C: AsRef<[CaseType]>> Iterator for CombinedCaseIterator<'s, C> {
                 .min_by_key(|&(_, ref item)| item.len())
         };
         maybe_next.map(|(case_type, item)| unsafe {
-            println!("item: {}", item);
-            println!("buffer: {}", self.buffer);
             self.buffer = case_type.slice_buffer(self.buffer, item);
-            println!("new buffer: {}", self.buffer);
             item
         })
     }
