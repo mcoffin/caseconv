@@ -1,0 +1,13 @@
+{
+    "name": "node-caseconv",
+    "version": "0.2.0",
+    "main": "index.js",
+    "scripts": {
+        "configure": "node-gyp configure",
+        "build": "node-gyp build"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "node-gyp": "3.x"
+    }
+}

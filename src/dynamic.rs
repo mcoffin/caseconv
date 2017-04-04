@@ -38,7 +38,6 @@ impl<'s, C: AsRef<[CaseType]>> Iterator for CombinedCaseIterator<'s, C> {
             let cases: &[CaseType] = self.cases.as_ref();
             cases.iter()
                 .filter_map(|case_type| case_type.components_iter(self.buffer).next().map(|s| (case_type.clone(), s)))
-                .filter(|&(_, ref item)| !item.is_empty())
                 .min_by_key(|&(_, ref item)| item.len())
         };
         maybe_next.map(|(case_type, item)| unsafe {
